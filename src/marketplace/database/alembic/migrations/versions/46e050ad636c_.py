@@ -26,6 +26,19 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
     )
+    op.execute(
+        """
+        INSERT INTO categories (id, name) VALUES
+            (gen_random_uuid(), 'Apparel'),
+            (gen_random_uuid(), 'Family'),
+            (gen_random_uuid(), 'Home and Garden'),
+            (gen_random_uuid(), 'Housing'),
+            (gen_random_uuid(), 'Electronic'),
+            (gen_random_uuid(), 'Hobbies'),
+            (gen_random_uuid(), 'Vehicles'),
+            (gen_random_uuid(), 'Entertainment')
+        """,
+    )
 
 
 def downgrade() -> None:
