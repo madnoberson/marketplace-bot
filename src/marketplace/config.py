@@ -5,12 +5,16 @@ from dataclasses import dataclass
 @dataclass(frozen=True, slots=True)
 class CatalogConfig:
     categories_number_per_page: int
+    subcategories_number_per_page: int
 
 
 def load_catalog_config() -> CatalogConfig:
     return CatalogConfig(
         categories_number_per_page=int(
             _get_env("CATEGORIES_NUMBER_PER_PAGE"),
+        ),
+        subcategories_number_per_page=int(
+            _get_env("SUBCATEGORIES_NUMBER_PER_PAGE"),
         ),
     )
 

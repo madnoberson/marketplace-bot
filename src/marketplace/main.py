@@ -14,8 +14,12 @@ from dishka import Provider, Scope, provide, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
 from marketplace.handlers.catalog import catalog_router
-from marketplace.database.sqlalchemy.mappers import CategoryMapper
+from marketplace.database.sqlalchemy.mappers import (
+    CategoryMapper,
+    SubcategoryMapper,
+)
 from marketplace.services.get_categories import GetCategories
+from marketplace.services.get_subcategories import GetSubcategories
 from .config import (
     PostgresConfig,
     CatalogConfig,
@@ -62,10 +66,20 @@ class DependenciesProvider(Provider):
         scope=Scope.REQUEST,
         provides=CategoryMapper,
     )
+    subcategory_mapper = provide(
+        SubcategoryMapper,
+        scope=Scope.REQUEST,
+        provides=SubcategoryMapper,
+    )
     get_categories = provide(
         GetCategories,
         scope=Scope.REQUEST,
         provides=GetCategories,
+    )
+    get_subcategories = provide(
+        GetSubcategories,
+        scope=Scope.REQUEST,
+        provides=GetSubcategories,
     )
 
 

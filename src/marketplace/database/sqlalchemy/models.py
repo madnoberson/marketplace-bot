@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -22,6 +22,20 @@ class CategoryModel(Model):
 
     id: Mapped[UUID] = mapped_column(
         primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        unique=True,
+    )
+
+
+class SubcategoryModel(Model):
+    __tablename__ = "subcategories"
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+    )
+    category_id: Mapped[UUID] = mapped_column(
+        ForeignKey("categories.id", ondelete="CASCADE"),
     )
     name: Mapped[str] = mapped_column(
         unique=True,

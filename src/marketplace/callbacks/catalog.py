@@ -12,6 +12,14 @@ class GetCategories(
 
 class GetSubcategories(
     CallbackData,
-    prefix="get_subcategories_of",
+    prefix="get_subcategories",
 ):
     category_id: UUID
+    page: int
+
+
+class GetProducts(
+    CallbackData,
+    prefix="get_products",
+):
+    subcategory_id: UUID

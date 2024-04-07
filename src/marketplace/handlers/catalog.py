@@ -7,6 +7,7 @@ from marketplace.keyboards import catalog as keyboards
 from marketplace.callbacks import catalog as callbacks
 from marketplace.config import CatalogConfig
 from marketplace.services.get_categories import GetCategories
+from marketplace.services.get_subcategories import GetSubcategories
 
 
 catalog_router = Router()
@@ -61,5 +62,40 @@ async def get_categories_with_page(
 
     await callback.message.edit_text(
         text="Choose category:",
+        reply_markup=reply_markup,
+    )
+
+
+@catalog_router.callback_query(callbacks.GetSubcategories.filter())
+@inject
+async def get_subcategories(
+    callback: CallbackQuery,
+    callback_data: callbacks.GetSubcategories,
+    catalog_config: FromDishka[CatalogConfig],
+    get_subcategories: FromDishka[GetSubcategories],
+) -> None:
+    get_subcategories_result = await get_subcategories(
+        category_id=callback_data.category_id,
+        limit=callback_data.page * (
+            catalog_config.subcategories_number_per_page
+        ),
+        offset=(callback_data.page - 1) * (
+            catalog_config.subcategories_number_per_page
+        ),
+    )
+    reply_markup = keyboards.get_subcategories(
+        subcategories=get_subcategories_result.subcategories,
+        category_id=callback_data.category_id,
+        subcategories_total_number=(
+            get_subcategories_result.total_number
+        ),
+        subcategories_number_per_page=(
+            catalog_config.subcategories_number_per_page
+        ),
+        current_page=1,
+    )
+
+    await callback.message.edit_text(
+        text="Choose subcategory:",
         reply_markup=reply_markup,
     )
