@@ -51,7 +51,7 @@ def get_categories(
             callback_data=callbacks.GetCategories(page=previous_page_number).pack(),
         )
 
-    if next_page_number == pages_total_number:
+    if current_page == pages_total_number:
         next_page_button = InlineKeyboardButton(
             text="⏩",
             callback_data=DoNothing().pack(),
