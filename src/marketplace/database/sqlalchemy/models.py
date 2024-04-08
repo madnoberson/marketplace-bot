@@ -26,7 +26,6 @@ class CategoryModel(Model):
     name: Mapped[str] = mapped_column(
         unique=True,
     )
-    quantity: Mapped[int]
 
 
 class SubcategoryModel(Model):

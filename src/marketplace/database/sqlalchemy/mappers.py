@@ -178,9 +178,13 @@ class CartItemMapper:
             )
             .returning(CartItemModel.id)
         )
-        return (
+        cart_item_id =  (
             await self._connection.execute(statement)
         ).scalar_one()
+
+        await self._connection.commit()
+
+        return cart_item_id
 
     async def with_user_id_and_number(
         self,
