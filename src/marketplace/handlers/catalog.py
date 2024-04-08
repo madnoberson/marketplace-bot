@@ -8,6 +8,7 @@ from marketplace.callbacks import catalog as callbacks
 from marketplace.config import CatalogConfig
 from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
+from marketplace.services.get_product import GetProduct
 
 
 catalog_router = Router()
@@ -32,7 +33,7 @@ async def get_categories(
     )
 
     await message.answer(
-        text="Choose category:",
+        text="<b>Choose category:</b>",
         reply_markup=reply_markup,
     )
 
@@ -61,7 +62,7 @@ async def get_categories_with_page(
     )
 
     await callback.message.edit_text(
-        text="Choose category:",
+        text="<b>Choose category:</b>",
         reply_markup=reply_markup,
     )
 
@@ -96,6 +97,37 @@ async def get_subcategories(
     )
 
     await callback.message.edit_text(
-        text="Choose subcategory:",
+        text="<b>Choose subcategory:</b>",
+        reply_markup=reply_markup,
+    )
+
+
+@catalog_router.callback_query(callbacks.GetProduct.filter())
+@inject
+async def get_product(
+    callback: CallbackQuery,
+    callback_data: callbacks.GetProduct,
+    get_product: FromDishka[GetProduct],
+) -> None:
+    get_product_result = await get_product(
+        subcategory_id=callback_data.subcategory_id,
+        number=callback_data.product_number,
+    )
+    text = (
+        "<b>"
+        f"Name: {get_product_result.product.name}\n"
+        f"Description: {get_product_result.product.description}\n"
+        f"Quantity: {get_product_result.product.quantity}"
+        "</b>"
+    )
+    reply_markup = keyboards.get_product(
+        product=get_product_result.product,
+        subcategory_id=callback_data.subcategory_id,
+        products_total_number=get_product_result.total_number,
+        current_number=callback_data.product_number,
+    )
+
+    await callback.message.answer(
+        text=text,
         reply_markup=reply_markup,
     )

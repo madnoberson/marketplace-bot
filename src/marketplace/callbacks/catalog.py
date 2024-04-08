@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from aiogram.filters.callback_data import CallbackData
 
 
@@ -14,12 +12,20 @@ class GetSubcategories(
     CallbackData,
     prefix="get_subcategories",
 ):
-    category_id: UUID
+    category_id: int
     page: int
 
 
-class GetProducts(
+class GetProduct(
     CallbackData,
     prefix="get_products",
 ):
-    subcategory_id: UUID
+    subcategory_id: int
+    product_number: int
+
+
+class ChoosseProductQuantity(
+    CallbackData,
+    prefix="choose_product_quantity",
+):
+    product_id: int

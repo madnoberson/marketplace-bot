@@ -1,11 +1,14 @@
-from uuid import UUID
-
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from marketplace.entities.category import Category
 from marketplace.entities.subcategory import Subcategory
-from .models import CategoryModel, SubcategoryModel
+from marketplace.entities.product import Product
+from .models import (
+    CategoryModel,
+    SubcategoryModel,
+    ProductModel,
+)
 
 
 class CategoryMapper:
@@ -47,7 +50,7 @@ class SubcategoryMapper:
     async def list_with_category_id(
         self,
         *,
-        category_id: UUID,
+        category_id: int,
         limit: int,
         offset: int,
     ) -> list[Subcategory]:
@@ -63,7 +66,7 @@ class SubcategoryMapper:
 
         return [self._to_entity(row) for row in rows]
 
-    async def count_with_category_id(self, category_id: UUID) -> int:
+    async def count_with_category_id(self, category_id: int) -> int:
         statement = text(
             """
             SELECT COUNT(sc.*)
@@ -81,4 +84,51 @@ class SubcategoryMapper:
         return Subcategory(
             id=model.id,
             name=model.name,
+        )
+
+
+class ProductMapper:
+    def __init__(self, connection: AsyncConnection) -> None:
+        self._connection = connection
+
+    async def with_subcategory_id_and_number(
+        self,
+        subcategory_id: int,
+        number: int,
+    ) -> Product:
+        statement = (
+            select(ProductModel)
+            .where(ProductModel.subcategory_id == subcategory_id)
+            .limit(number)
+            .offset(number - 1)
+        )
+        row = (
+            await self._connection.execute(statement)
+        ).fetchone()
+
+        return self._to_entity(row)
+
+    async def count_with_subcategory_id(
+        self,
+        subcategory_id: int,
+    ) -> int:
+        statement = text(
+            """
+            SELECT COUNT(p.*)
+            FROM products p
+            WHERE p.subcategory_id = :subcategory_id
+            """
+        )
+        parameters = {"subcategory_id": subcategory_id}
+
+        return (
+            await self._connection.execute(statement, parameters)
+        ).scalar_one()
+
+    def _to_entity(self, model: ProductModel) -> Product:
+        return Product(
+            id=model.id,
+            name=model.name,
+            description=model.description,
+            quantity=model.quantity,
         )

@@ -20,7 +20,7 @@ class Model(DeclarativeBase):
 class CategoryModel(Model):
     __tablename__ = "categories"
 
-    id: Mapped[UUID] = mapped_column(
+    id: Mapped[int] = mapped_column(
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -31,7 +31,7 @@ class CategoryModel(Model):
 class SubcategoryModel(Model):
     __tablename__ = "subcategories"
 
-    id: Mapped[UUID] = mapped_column(
+    id: Mapped[int] = mapped_column(
         primary_key=True,
     )
     category_id: Mapped[UUID] = mapped_column(
@@ -40,3 +40,18 @@ class SubcategoryModel(Model):
     name: Mapped[str] = mapped_column(
         unique=True,
     )
+
+
+class ProductModel(Model):
+    __tablename__ = "products"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+    )
+    subcategory_id: Mapped[UUID] = mapped_column(
+        ForeignKey("subcategories.id", ondelete="CASCADE"),
+    )
+    name: Mapped[str]
+    description: Mapped[str]
+    quantity: Mapped[int]
+

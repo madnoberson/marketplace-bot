@@ -17,9 +17,11 @@ from marketplace.handlers.catalog import catalog_router
 from marketplace.database.sqlalchemy.mappers import (
     CategoryMapper,
     SubcategoryMapper,
+    ProductMapper,
 )
 from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
+from marketplace.services.get_product import GetProduct
 from .config import (
     PostgresConfig,
     CatalogConfig,
@@ -71,6 +73,11 @@ class DependenciesProvider(Provider):
         scope=Scope.REQUEST,
         provides=SubcategoryMapper,
     )
+    product_mapper = provide(
+        ProductMapper,
+        scope=Scope.REQUEST,
+        provides=ProductMapper,
+    )
     get_categories = provide(
         GetCategories,
         scope=Scope.REQUEST,
@@ -80,6 +87,11 @@ class DependenciesProvider(Provider):
         GetSubcategories,
         scope=Scope.REQUEST,
         provides=GetSubcategories,
+    )
+    get_product = provide(
+        GetProduct,
+        scope=Scope.REQUEST,
+        provides=GetProduct,
     )
 
 

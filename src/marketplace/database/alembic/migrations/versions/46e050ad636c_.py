@@ -21,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         "categories",
-        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
@@ -29,20 +29,20 @@ def upgrade() -> None:
     op.execute(
         """
         INSERT INTO categories (id, name) VALUES
-            ('87a77985-ff82-4b32-a981-981aecd9c2bb', 'Apparel'),
-            ('87a77985-ff82-4b32-a981-981aecd9c3bb', 'Family'),
-            ('87a77985-ff82-4b32-a981-981aecd9c4bb', 'Home and Garden'),
-            ('87a77985-ff82-4b32-a981-981aecd9c5bb', 'Housing'),
-            ('87a77985-ff82-4b32-a981-981aecd9c6bb', 'Electronic'),
-            ('87a77985-ff82-4b32-a981-981aecd9c7bb', 'Hobbies'),
-            ('87a77985-ff82-4b32-a981-981aecd9c8bb', 'Vehicles'),
-            ('87a77985-ff82-4b32-a981-981aecd9c9bb', 'Entertainment')
+            (1, 'Apparel'),
+            (2, 'Family'),
+            (3, 'Home and Garden'),
+            (4, 'Housing'),
+            (5, 'Electronic'),
+            (6, 'Hobbies'),
+            (7, 'Vehicles'),
+            (8, 'Entertainment')
         """,
     )
     op.create_table(
         "subcategories",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("category_id", sa.Uuid(), nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("category_id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
@@ -55,46 +55,41 @@ def upgrade() -> None:
     op.execute(
         """
         INSERT INTO subcategories (id, category_id, name) VALUES
-            (
-                'ab415d24-f504-4563-8944-39f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c2bb',
-                'Hats'
-            ),
-            (
-                'ab415d24-f504-4563-8944-49f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c3bb',
-                'Toys'
-            ),
-            (
-                'ab415d24-f504-4563-8944-59f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c4bb',
-                'Shovels'
-            ),
-            (
-                'ab415d24-f504-4563-8944-69f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c5bb',
-                'Soap'
-            ),
-            (
-                'ab415d24-f504-4563-8944-89f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c6bb',
-                'Laptops'
-            ),
-            (
-                'ab415d24-f504-4563-8944-99f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c7bb',
-                'Books'
-            ),
-            (
-                'ab415d24-f504-4563-8944-19f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c8bb',
-                'Wheels'
-            ),
-            (
-                'ab415d24-f504-4563-8944-29f784b786b6',
-                '87a77985-ff82-4b32-a981-981aecd9c9bb',
-                'Puzzles'
-            )
+            (1, 1, 'Hats'),
+            (2, 2, 'Toys'),
+            (3, 3, 'Shovels'),
+            (4, 4, 'Soap'),
+            (5, 5, 'Laptops'),
+            (6, 6, 'Books'),
+            (7, 7, 'Wheels'),
+            (8, 8, 'Puzzles')
+        """
+    )
+    op.create_table(
+        "products",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("subcategory_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("description", sa.String(), nullable=False),
+        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(
+            ["subcategory_id"],
+            ["subcategories.id"],
+            ondelete="CASCADE",
+        )
+    )
+    op.execute(
+        """
+        INSERT INTO products (id, subcategory_id, name, description, quantity) VALUES
+            (1, 1, 'Big hat', 'Nice hat', 10),
+            (2, 2, 'Godzilla toy', 'He is terrifying', 5),
+            (3, 3, 'Wide shovel', 'It is so wide', 200),
+            (4, 4, 'Most soapest soap', 'So soapy', 1000),
+            (5, 5, 'Thinkpad T470', 'Great laptop', 3),
+            (6, 6, 'DDD', 'Dive into DDD', 19),
+            (7, 7, 'Big wheel', 'Big enough for tractors', 888),
+            (8, 8, 'Colorful puzzles', 'Red, yellow, blue and more...', 444)
         """
     )
 
@@ -102,3 +97,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("categories")
     op.drop_table("subcategories")
+    op.drop_table("products")
