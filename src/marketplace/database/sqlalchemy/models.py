@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import MetaData, ForeignKey
+from sqlalchemy import MetaData, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -26,6 +26,7 @@ class CategoryModel(Model):
     name: Mapped[str] = mapped_column(
         unique=True,
     )
+    quantity: Mapped[int]
 
 
 class SubcategoryModel(Model):
@@ -54,4 +55,20 @@ class ProductModel(Model):
     name: Mapped[str]
     description: Mapped[str]
     quantity: Mapped[int]
+    price: Mapped[int]
 
+
+class CartItemModel(Model):
+    __tablename__ = "cart_items"
+
+    id: Mapped[int] = mapped_column(
+        autoincrement=True,
+        primary_key=True,
+    )
+    user_id: Mapped[int]
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"),
+    )
+    quantity: Mapped[int]
+
+    __table_args__ = (UniqueConstraint("user_id", "product_id"),)

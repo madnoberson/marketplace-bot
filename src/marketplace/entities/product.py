@@ -7,3 +7,4 @@ class Product:
     name: str
     description: str
     quantity: int
+    price: int

@@ -18,7 +18,6 @@ from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
 from marketplace.services.get_product import GetProduct
 from marketplace.services.get_product_with_id import GetProductWithId
-from marketplace.services.acquire_product import AcquireProduct
 
 
 catalog_router = Router()

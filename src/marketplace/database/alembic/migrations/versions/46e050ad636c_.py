@@ -72,6 +72,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("description", sa.String(), nullable=False),
         sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("price", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["subcategory_id"],
@@ -81,16 +82,35 @@ def upgrade() -> None:
     )
     op.execute(
         """
-        INSERT INTO products (id, subcategory_id, name, description, quantity) VALUES
-            (1, 1, 'Big hat', 'Nice hat', 10),
-            (2, 2, 'Godzilla toy', 'He is terrifying', 5),
-            (3, 3, 'Wide shovel', 'It is so wide', 200),
-            (4, 4, 'Most soapest soap', 'So soapy', 1000),
-            (5, 5, 'Thinkpad T470', 'Great laptop', 3),
-            (6, 6, 'DDD', 'Dive into DDD', 19),
-            (7, 7, 'Big wheel', 'Big enough for tractors', 888),
-            (8, 8, 'Colorful puzzles', 'Red, yellow, blue and more...', 444)
+        INSERT INTO products (id, subcategory_id, name, description, quantity, price) VALUES
+            (1, 1, 'Big hat', 'Nice hat', 10, 10),
+            (2, 2, 'Godzilla toy', 'He is terrifying', 5, 100),
+            (3, 3, 'Wide shovel', 'It is so wide', 200, 200),
+            (4, 4, 'Most soapest soap', 'So soapy', 1000, 1),
+            (5, 5, 'Thinkpad T470', 'Great laptop', 3, 2000),
+            (6, 6, 'DDD', 'Dive into DDD', 19, 300),
+            (7, 7, 'Big wheel', 'Big enough for tractors', 888, 800),
+            (8, 8, 'Colorful puzzles', 'Red, yellow, blue and more...', 444, 40)
         """
+    )
+    op.create_table(
+        "cart_items",
+        sa.Column(
+            "id",
+            sa.Integer(),
+            autoincrement=True,
+            nullable=False,
+        ),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("product_id", sa.Integer(), nullable=False),
+        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(
+            ["product_id"],
+            ["products.id"],
+            ondelete="CASCADE",
+        ),
+        sa.UniqueConstraint("user_id", "product_id"),
     )
 
 
@@ -98,3 +118,4 @@ def downgrade() -> None:
     op.drop_table("categories")
     op.drop_table("subcategories")
     op.drop_table("products")
+    op.drop_table("cart_items")

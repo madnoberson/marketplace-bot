@@ -14,15 +14,19 @@ from dishka import Provider, Scope, provide, make_async_container
 from dishka.integrations.aiogram import setup_dishka
 
 from marketplace.handlers.catalog import catalog_router
+from marketplace.handlers.cart import cart_router
 from marketplace.database.sqlalchemy.mappers import (
     CategoryMapper,
     SubcategoryMapper,
     ProductMapper,
+    CartItemMapper,
 )
 from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
 from marketplace.services.get_product import GetProduct
 from marketplace.services.get_product_with_id import GetProductWithId
+from marketplace.services.add_product_to_cart import AddProductToCart
+from marketplace.services.get_cart_item import GetCartItem
 from .config import (
     PostgresConfig,
     CatalogConfig,
@@ -79,6 +83,11 @@ class DependenciesProvider(Provider):
         scope=Scope.REQUEST,
         provides=ProductMapper,
     )
+    cart_item_mapper = provide(
+        CartItemMapper,
+        scope=Scope.REQUEST,
+        provides=CartItemMapper,
+    )
     get_categories = provide(
         GetCategories,
         scope=Scope.REQUEST,
@@ -99,6 +108,16 @@ class DependenciesProvider(Provider):
         scope=Scope.REQUEST,
         provides=GetProductWithId,
     )
+    add_product_to_cart = provide(
+        AddProductToCart,
+        scope=Scope.REQUEST,
+        provides=AddProductToCart,
+    )
+    get_cart_item = provide(
+        GetCartItem,
+        scope=Scope.REQUEST,
+        provides=GetCartItem,
+    )
 
 
 async def main() -> None:
@@ -109,7 +128,7 @@ async def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
     dispatcher = Dispatcher()
-    dispatcher.include_routers(catalog_router)
+    dispatcher.include_routers(catalog_router, cart_router)
     bot = Bot(BOT_TOKEN, parse_mode=ParseMode.HTML)
 
     provider = DependenciesProvider(

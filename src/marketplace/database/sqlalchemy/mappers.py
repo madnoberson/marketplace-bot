@@ -1,15 +1,17 @@
 from typing import Optional
 
-from sqlalchemy import select, text
+from sqlalchemy import select, insert, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from marketplace.entities.category import Category
 from marketplace.entities.subcategory import Subcategory
 from marketplace.entities.product import Product
+from marketplace.entities.cart_item import CartItem
 from .models import (
     CategoryModel,
     SubcategoryModel,
     ProductModel,
+    CartItemModel,
 )
 
 
@@ -157,5 +159,66 @@ class ProductMapper:
             id=model.id,
             name=model.name,
             description=model.description,
+            quantity=model.quantity,
+            price=model.price,
+        )
+
+
+class CartItemMapper:
+    def __init__(self, connection: AsyncConnection) -> None:
+        self._connection = connection
+
+    async def save(self, cart_item: CartItem) -> int:
+        statement = (
+            insert(CartItemModel)
+            .values(
+                user_id=cart_item.user_id,
+                product_id=cart_item.product_id,
+                quantity=cart_item.quantity,
+            )
+            .returning(CartItemModel.id)
+        )
+        return (
+            await self._connection.execute(statement)
+        ).scalar_one()
+
+    async def with_user_id_and_number(
+        self,
+        *,
+        user_id: int,
+        number: int,
+    ) -> Optional[CartItem]:
+        statement = (
+            select(CartItemModel)
+            .where(CartItemModel.user_id == user_id)
+            .limit(number)
+            .offset(number - 1)
+        )
+        row = (
+            await self._connection.execute(statement)
+        ).fetchone()
+        if row:
+            return self._to_entity(row)
+        return None
+
+    async def count_with_user_id(self, user_id: int) -> int:
+        statement = text(
+            """
+            SELECT COUNT(ci.*)
+            FROM cart_items ci
+            WHERE ci.user_id = :user_id
+            """
+        )
+        parameters = {"user_id": user_id}
+
+        return (
+            await self._connection.execute(statement, parameters)
+        ).scalar_one()
+
+    def _to_entity(self, model: CartItemModel) -> CartItem:
+        return CartItem(
+            id=model.id,
+            user_id=model.user_id,
+            product_id=model.product_id,
             quantity=model.quantity,
         )

@@ -1,6 +1,5 @@
 import math
 from typing import Sequence
-from uuid import UUID
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -83,7 +82,7 @@ def get_categories(
 
 def get_subcategories(
     subcategories: Sequence[Subcategory],
-    category_id: UUID,
+    category_id: int,
     subcategories_total_number: int,
     subcategories_number_per_page: int,
     current_page: int,
