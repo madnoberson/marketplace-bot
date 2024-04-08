@@ -112,11 +112,22 @@ class ProductMapper:
             return self._to_entity(row)
         return None
 
-    async def with_id(self, product_id: int) -> Product:
-        statement = (
-            select(ProductModel)
-            .where(ProductModel.id == product_id)
-        )
+    async def with_id(
+        self,
+        product_id: int,
+        acquire: bool = False,
+    ) -> Product:
+        if acquire:
+            statement = (
+                select(ProductModel)
+                .where(ProductModel.id == product_id)
+                .with_for_update()
+            )
+        else:
+            statement = (
+                select(ProductModel)
+                .where(ProductModel.id == product_id)
+            )
         row = (
             await self._connection.execute(statement)
         ).fetchone()

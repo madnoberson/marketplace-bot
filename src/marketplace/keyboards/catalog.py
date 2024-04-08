@@ -216,3 +216,20 @@ def get_product(
     )
 
     return builder.as_markup()
+
+
+def confirm_adding_product_to_cart(
+    product_id: int,
+    quantity: int,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    builder.button(
+        text="✅",
+        callback_data=callbacks.AddProductToCart(
+            product_id=product_id,
+            quantity=quantity,
+        ),
+    )
+
+    return builder.as_markup()

@@ -22,6 +22,7 @@ from marketplace.database.sqlalchemy.mappers import (
 from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
 from marketplace.services.get_product import GetProduct
+from marketplace.services.get_product_with_id import GetProductWithId
 from .config import (
     PostgresConfig,
     CatalogConfig,
@@ -92,6 +93,11 @@ class DependenciesProvider(Provider):
         GetProduct,
         scope=Scope.REQUEST,
         provides=GetProduct,
+    )
+    get_product_with_id = provide(
+        GetProductWithId,
+        scope=Scope.REQUEST,
+        provides=GetProductWithId,
     )
 
 

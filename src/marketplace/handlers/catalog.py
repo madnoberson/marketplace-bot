@@ -8,9 +8,16 @@ from marketplace.keyboards import catalog as keyboards
 from marketplace.callbacks import catalog as callbacks
 from marketplace.states import catalog as states
 from marketplace.config import CatalogConfig
+from marketplace.filters.number import (
+    IsNumber,
+    IsNotNumber,
+    IsNumberGreaterThan,
+    IsNumberLessThan,
+)
 from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
 from marketplace.services.get_product import GetProduct
+from marketplace.services.get_product_with_id import GetProductWithId
 from marketplace.services.acquire_product import AcquireProduct
 
 
@@ -145,10 +152,68 @@ async def choose_product_quantity(
     callback_data: callbacks.ChooseProductQuantity,
 ) -> None:
     await state.set_state(states.AddToCart.confirm)
-    await state.set_data(
-        {
-            "product_id": callback_data.product_id,
-        },
-    )
+    await state.set_data({"product_id": callback_data.product_id})
     await callback.message.answer(text="<b>Choose quantity:</b>")
     await callback.answer()
+
+
+@catalog_router.message(
+    states.AddToCart.confirm,
+    IsNotNumber(),
+)
+@catalog_router.message(
+    states.AddToCart.confirm,
+    IsNumber(),
+    IsNumberLessThan(1),
+)
+async def invalid_product_quantity(message: Message) -> None:
+    text = (
+        "<b>"
+        "Invalid product quantity.\n\n"
+        "Please, choose another quantity:"
+        "</b>"
+    )
+    await message.answer(text=text)
+
+
+@catalog_router.message(
+    states.AddToCart.confirm,
+    IsNumber(),
+    IsNumberGreaterThan(0),
+)
+@inject
+async def confirm_adding_product_to_cart(
+    message: Message,
+    state: FSMContext,
+    get_product_with_id: FromDishka[GetProductWithId],
+) -> None:
+    state_data = await state.get_data()
+
+    product_id = state_data.get("product_id")
+    product = await get_product_with_id(product_id=product_id)
+
+    product_quantity_user_chose = int(message.text)
+    if product_quantity_user_chose > product.quantity:
+        text = (
+            "<b>"
+            f"Only {product.quantity} products is avaliable.\n\n"
+            "Please, choose another quantity:"
+            "</b>"
+        )
+        await message.answer(text=text)
+    else:
+        text = (
+            "<b>"
+            f"You are going to add {product_quantity_user_chose} "
+            f"'{product.name}' to cart.\n\n"
+            "Please, confirm."
+            "</b>"
+        )
+        reply_markup = keyboards.confirm_adding_product_to_cart(
+            product_id=product_id,
+            quantity=product_quantity_user_chose,
+        )
+        await message.answer(
+            text=text,
+            reply_markup=reply_markup,
+        )

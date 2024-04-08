@@ -29,3 +29,11 @@ class ChooseProductQuantity(
     prefix="choose_product_quantity",
 ):
     product_id: int
+
+
+class AddProductToCart(
+    CallbackData,
+    prefix="add_product_to_cart",
+):
+    product_id: int
+    quantity: int
