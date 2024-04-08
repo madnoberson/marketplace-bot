@@ -1,14 +1,17 @@
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters.command import Command
+from aiogram.fsm.context import FSMContext
 from dishka.integrations.aiogram import FromDishka, inject
 
 from marketplace.keyboards import catalog as keyboards
 from marketplace.callbacks import catalog as callbacks
+from marketplace.states import catalog as states
 from marketplace.config import CatalogConfig
 from marketplace.services.get_categories import GetCategories
 from marketplace.services.get_subcategories import GetSubcategories
 from marketplace.services.get_product import GetProduct
+from marketplace.services.acquire_product import AcquireProduct
 
 
 catalog_router = Router()
@@ -131,3 +134,21 @@ async def get_product(
         text=text,
         reply_markup=reply_markup,
     )
+    await callback.answer()
+
+
+@catalog_router.callback_query(callbacks.ChooseProductQuantity.filter())
+@inject
+async def choose_product_quantity(
+    callback: CallbackQuery,
+    state: FSMContext,
+    callback_data: callbacks.ChooseProductQuantity,
+) -> None:
+    await state.set_state(states.AddToCart.confirm)
+    await state.set_data(
+        {
+            "product_id": callback_data.product_id,
+        },
+    )
+    await callback.message.answer(text="<b>Choose quantity:</b>")
+    await callback.answer()

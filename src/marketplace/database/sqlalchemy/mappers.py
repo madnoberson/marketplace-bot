@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -93,9 +95,10 @@ class ProductMapper:
 
     async def with_subcategory_id_and_number(
         self,
+        *,
         subcategory_id: int,
         number: int,
-    ) -> Product:
+    ) -> Optional[Product]:
         statement = (
             select(ProductModel)
             .where(ProductModel.subcategory_id == subcategory_id)
@@ -105,8 +108,21 @@ class ProductMapper:
         row = (
             await self._connection.execute(statement)
         ).fetchone()
+        if row:
+            return self._to_entity(row)
+        return None
 
-        return self._to_entity(row)
+    async def with_id(self, product_id: int) -> Product:
+        statement = (
+            select(ProductModel)
+            .where(ProductModel.id == product_id)
+        )
+        row = (
+            await self._connection.execute(statement)
+        ).fetchone()
+        if row:
+            return self._to_entity(row)
+        return None
 
     async def count_with_subcategory_id(
         self,

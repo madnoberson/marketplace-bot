@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from uuid import UUID
+from typing import Optional
 
 from marketplace.entities.product import Product
 from marketplace.database.sqlalchemy.mappers import ProductMapper
@@ -7,7 +7,7 @@ from marketplace.database.sqlalchemy.mappers import ProductMapper
 
 @dataclass(frozen=True, slots=True)
 class GetProductResult:
-    product: Product
+    product: Optional[Product]
     total_number: int
 
 
@@ -18,7 +18,7 @@ class GetProduct:
     async def __call__(
         self,
         *,
-        subcategory_id: UUID,
+        subcategory_id: int,
         number: int,
     ) -> GetProductResult:
         product = await self._product_mapper.with_subcategory_id_and_number(

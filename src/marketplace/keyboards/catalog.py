@@ -202,7 +202,7 @@ def get_product(
     )
     add_to_cart_button = InlineKeyboardButton(
         text="🛒",
-        callback_data=callbacks.ChoosseProductQuantity(
+        callback_data=callbacks.ChooseProductQuantity(
             product_id=product.id,
         ).pack(),
     )

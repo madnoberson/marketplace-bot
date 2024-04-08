@@ -18,7 +18,7 @@ class GetSubcategories:
     async def __call__(
         self,
         *,
-        category_id: UUID,
+        category_id: int,
         limit: int,
         offset: int,
     ) -> GetSubcategoriesResult:

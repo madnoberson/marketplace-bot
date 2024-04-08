@@ -24,7 +24,7 @@ class GetProduct(
     product_number: int
 
 
-class ChoosseProductQuantity(
+class ChooseProductQuantity(
     CallbackData,
     prefix="choose_product_quantity",
 ):
