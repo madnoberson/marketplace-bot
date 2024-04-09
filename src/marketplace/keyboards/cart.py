@@ -49,8 +49,12 @@ def get_cart_item(
     remove_from_cart_button = InlineKeyboardButton(
         text="🗑",
         callback_data=callbacks.DeleteCartItem(
-            cart_item_id=cart_item.id,
+            cart_item_number=current_number,
         ).pack(),
+    )
+    create_order_button = InlineKeyboardButton(
+        text="📦",
+        callback_data=callbacks.CreateOrder().pack(),
     )
 
     builder.row(
@@ -58,7 +62,8 @@ def get_cart_item(
         pages_information_button,
         next_page_button,
         remove_from_cart_button,
-        width=4,
+        create_order_button,
+        width=3,
     )
 
     return builder.as_markup()

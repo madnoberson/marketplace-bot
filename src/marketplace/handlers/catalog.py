@@ -14,10 +14,11 @@ from marketplace.filters.number import (
     IsNumberGreaterThan,
     IsNumberLessThan,
 )
-from marketplace.services.get_categories import GetCategories
-from marketplace.services.get_subcategories import GetSubcategories
-from marketplace.services.get_product import GetProduct
-from marketplace.services.get_product_with_id import GetProductWithId
+from marketplace.database.sqlalchemy.mappers import (
+    CategoryMapper,
+    SubcategoryMapper,
+    ProductMapper,
+)
 
 
 catalog_router = Router()
@@ -28,16 +29,20 @@ catalog_router = Router()
 async def get_categories(
     message: Message,
     catalog_config: FromDishka[CatalogConfig],
-    get_categories: FromDishka[GetCategories],
+    category_mapper: FromDishka[CategoryMapper],
 ) -> None:
-    get_categories_result = await get_categories(
+    categories = await category_mapper.list(
         limit=catalog_config.categories_number_per_page,
         offset=0,
     )
+    categories_total_number = await category_mapper.count()
+
     reply_markup = keyboards.get_categories(
-        categories=get_categories_result.categories,
-        categories_total_number=get_categories_result.total_number,
-        categories_number_per_page=catalog_config.categories_number_per_page,
+        categories=categories,
+        categories_total_number=categories_total_number,
+        categories_number_per_page=(
+            catalog_config.categories_number_per_page
+        ),
         current_page=1,
     )
 
@@ -53,9 +58,9 @@ async def get_categories_with_page(
     callback: CallbackQuery,
     callback_data: callbacks.GetCategories,
     catalog_config: FromDishka[CatalogConfig],
-    get_categories: FromDishka[GetCategories],
+    category_mapper: FromDishka[CategoryMapper],
 ) -> None:
-    get_categories_result = await get_categories(
+    categories = await category_mapper.list(
         limit=callback_data.page * (
             catalog_config.categories_number_per_page
         ),
@@ -63,10 +68,14 @@ async def get_categories_with_page(
             catalog_config.categories_number_per_page
         ),
     )
+    categories_total_number = await category_mapper.count()
+
     reply_markup = keyboards.get_categories(
-        categories=get_categories_result.categories,
-        categories_total_number=get_categories_result.total_number,
-        categories_number_per_page=catalog_config.categories_number_per_page,
+        categories=categories,
+        categories_total_number=categories_total_number,
+        categories_number_per_page=(
+            catalog_config.categories_number_per_page
+        ),
         current_page=callback_data.page,
     )
 
@@ -82,9 +91,9 @@ async def get_subcategories(
     callback: CallbackQuery,
     callback_data: callbacks.GetSubcategories,
     catalog_config: FromDishka[CatalogConfig],
-    get_subcategories: FromDishka[GetSubcategories],
+    subcategory_mapper: FromDishka[SubcategoryMapper],
 ) -> None:
-    get_subcategories_result = await get_subcategories(
+    subcategories = await subcategory_mapper.list_with_category_id(
         category_id=callback_data.category_id,
         limit=callback_data.page * (
             catalog_config.subcategories_number_per_page
@@ -93,12 +102,14 @@ async def get_subcategories(
             catalog_config.subcategories_number_per_page
         ),
     )
-    reply_markup = keyboards.get_subcategories(
-        subcategories=get_subcategories_result.subcategories,
+    subcategories_total_number = await subcategory_mapper.count_with_category_id(
         category_id=callback_data.category_id,
-        subcategories_total_number=(
-            get_subcategories_result.total_number
-        ),
+    )
+
+    reply_markup = keyboards.get_subcategories(
+        subcategories=subcategories,
+        category_id=callback_data.category_id,
+        subcategories_total_number=subcategories_total_number,
         subcategories_number_per_page=(
             catalog_config.subcategories_number_per_page
         ),
@@ -116,23 +127,28 @@ async def get_subcategories(
 async def get_product(
     callback: CallbackQuery,
     callback_data: callbacks.GetProduct,
-    get_product: FromDishka[GetProduct],
+    product_mapper: FromDishka[ProductMapper],
 ) -> None:
-    get_product_result = await get_product(
+    product = await product_mapper.with_subcategory_id_and_number(
         subcategory_id=callback_data.subcategory_id,
         number=callback_data.product_number,
     )
+    products_total_number = await product_mapper.count_with_subcategory_id(
+        subcategory_id=callback_data.subcategory_id,
+    )
+
     text = (
         "<b>"
-        f"Name: {get_product_result.product.name}\n"
-        f"Description: {get_product_result.product.description}\n"
-        f"Quantity: {get_product_result.product.quantity}"
+        f"Name: {product.name}\n"
+        f"Description: {product.description}\n"
+        f"Quantity: {product.quantity} \n"
+        f"Price: {product.price}\n"
         "</b>"
     )
     reply_markup = keyboards.get_product(
-        product=get_product_result.product,
+        product=product,
         subcategory_id=callback_data.subcategory_id,
-        products_total_number=get_product_result.total_number,
+        products_total_number=products_total_number,
         current_number=callback_data.product_number,
     )
 
@@ -184,12 +200,13 @@ async def invalid_product_quantity(message: Message) -> None:
 async def confirm_adding_product_to_cart(
     message: Message,
     state: FSMContext,
-    get_product_with_id: FromDishka[GetProductWithId],
+    product_mapper: FromDishka[ProductMapper],
 ) -> None:
     state_data = await state.get_data()
 
-    product_id = state_data.get("product_id")
-    product = await get_product_with_id(product_id=product_id)
+    product = await product_mapper.with_id(
+        product_id=state_data.get("product_id"),
+    )
 
     product_quantity_user_chose = int(message.text)
     if product_quantity_user_chose > product.quantity:
@@ -209,7 +226,7 @@ async def confirm_adding_product_to_cart(
             "</b>"
         )
         reply_markup = keyboards.confirm_adding_product_to_cart(
-            product_id=product_id,
+            product_id=product.id,
             quantity=product_quantity_user_chose,
         )
         await message.answer(

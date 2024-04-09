@@ -12,4 +12,11 @@ class DeleteCartItem(
     CallbackData,
     prefix="delete_cart_item",
 ):
-    cart_item_id: int
+    cart_item_number: int
+
+
+class CreateOrder(
+    CallbackData,
+    prefix="create_order",
+):
+    ...

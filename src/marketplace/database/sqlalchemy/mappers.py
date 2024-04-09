@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select, insert, text
+from sqlalchemy import select, insert, delete, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from marketplace.entities.category import Category
@@ -182,8 +182,6 @@ class CartItemMapper:
             await self._connection.execute(statement)
         ).scalar_one()
 
-        await self._connection.commit()
-
         return cart_item_id
 
     async def with_user_id_and_number(
@@ -218,6 +216,13 @@ class CartItemMapper:
         return (
             await self._connection.execute(statement, parameters)
         ).scalar_one()
+
+    async def delete(self, cart_item: CartItem) -> None:
+        statement = (
+            delete(CartItemModel)
+            .where(CartItemModel.id == cart_item.id)
+        )
+        await self._connection.execute(statement)
 
     def _to_entity(self, model: CartItemModel) -> CartItem:
         return CartItem(
