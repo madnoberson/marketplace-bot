@@ -15,6 +15,13 @@ class DeleteCartItem(
     cart_item_number: int
 
 
+class StartCreatingOrder(
+    CallbackData,
+    prefix="start_creating_order",
+):
+    ...
+
+
 class CreateOrder(
     CallbackData,
     prefix="create_order",

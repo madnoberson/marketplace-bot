@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import select, insert, delete, text
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -137,6 +137,20 @@ class ProductMapper:
             return self._to_entity(row)
         return None
 
+    async def list_with_products_ids(
+        self,
+        product_ids: Sequence[int]
+    ) -> list[Product]:
+        statement = (
+            select(ProductModel)
+            .where(ProductModel.id.in_(product_ids))
+        )
+        rows = (
+            await self._connection.execute(statement)
+        ).fetchall()
+
+        return [self._to_entity(row) for row in rows]
+
     async def count_with_subcategory_id(
         self,
         subcategory_id: int,
@@ -202,6 +216,25 @@ class CartItemMapper:
         if row:
             return self._to_entity(row)
         return None
+
+    async def list_with_user_id(
+        self,
+        *,
+        user_id: int,
+        limit: int,
+        offset: int,
+    ) -> list[CartItem]:
+        statement = (
+            select(CartItemModel)
+            .where(CartItemModel.user_id == user_id)
+            .limit(limit)
+            .offset(offset)
+        )
+        rows = (
+            await self._connection.execute(statement)
+        ).fetchall()
+
+        return [self._to_entity(row) for row in rows]
 
     async def count_with_user_id(self, user_id: int) -> int:
         statement = text(

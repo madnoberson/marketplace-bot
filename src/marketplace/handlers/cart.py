@@ -8,7 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from marketplace.callbacks import catalog as catalog_callbacks
 from marketplace.callbacks import cart as callbacks
 from marketplace.keyboards import cart as keyboards
+from marketplace.states import cart as states
 from marketplace.entities.cart_item import CartItem
+from marketplace.filters.personal_data import (
+    IsFullName,
+    IsNotFullName,
+    IsAddress,
+    IsNotAddress,
+)
 from marketplace.database.sqlalchemy.mappers import (
     ProductMapper,
     CartItemMapper,
@@ -243,4 +250,108 @@ async def delete_cart_item(
     )
     await callback.answer(
         text="Product deleted from cart",
+    )
+
+
+@cart_router.callback_query(callbacks.StartCreatingOrder.filter())
+async def enter_full_name(
+    callback: CallbackQuery,
+    state: FSMContext,
+) -> None:
+    await state.set_state(states.CreateOrder.enter_full_name)
+    await callback.message.answer(text="<b>Enter your full name:</b>")
+    await callback.answer()
+
+
+@cart_router.message(
+    states.CreateOrder.enter_full_name,
+    IsNotFullName(),
+)
+async def ivalid_fullname(message: Message) -> None:
+    text = (
+        "<b>"
+        "Invalid full name\n\n"
+        "Please, try again:"
+        "</b>"
+    )
+    await message.answer(text=text)
+
+
+@cart_router.message(
+    states.CreateOrder.enter_full_name,
+    IsFullName(),
+)
+async def enter_address(
+    message: Message,
+    state: FSMContext,
+) -> None:
+    await state.set_state(states.CreateOrder.enter_address)
+    await state.set_data({"full_name": message.text})
+    await message.answer(text="<b>Enter your address:</b>")
+
+
+@cart_router.message(
+    states.CreateOrder.enter_address,
+    IsNotAddress(),
+)
+async def ivalid_address(message: Message) -> None:
+    text = (
+        "<b>"
+        "Invalid address\n\n"
+        "Please, try again:"
+        "</b>"
+    )
+    await message.answer(text=text)
+
+
+@cart_router.message(
+    states.CreateOrder.enter_address,
+    IsAddress(),
+)
+@inject
+async def confirm_creating_order(
+    message: Message,
+    state: FSMContext,
+    product_mapper: FromDishka[ProductMapper],
+    cart_item_mapper: FromDishka[CartItemMapper],
+) -> None:
+    state_data = await state.get_data()
+
+    cart_items = await cart_item_mapper.list_with_user_id(
+        user_id=message.chat.id,
+        limit=1000,
+        offset=0,
+    )
+    products = await product_mapper.list_with_products_ids(
+        product_ids=[cart_item.product_id for cart_item in cart_items],
+    )
+
+    text = (
+        "<b>You are going to create order with following data:</b>\n\n"
+        "<b>Full name:</b> {full_name}\n"
+        "<b>Address:</b> {address}\n\n"
+        "<b>Products:</b>\n\n"
+        "{products}\n\n"
+        "<b>Total price: {total_price}</b>\n\n"
+        "<b>Please, confirm.</b>"
+    ).format(
+        full_name=state_data['full_name'],
+        address=message.text,
+        products="\n".join([
+            f"<b>Name:</b> {product.name}, <b>quantity:</b> {cart_item.quantity}"
+            for product, cart_item in zip(products, cart_items)
+        ]),
+        total_price=sum(
+            [
+                product.price * cart_item.quantity
+                for product, cart_item in zip(products, cart_items)
+            ],
+        ),
+    )
+    reply_markup = keyboards.confirm_creating_order()
+
+    await state.set_data({"address": message.text})
+    await message.answer(
+        text=text,
+        reply_markup=reply_markup,
     )

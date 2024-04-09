@@ -54,7 +54,7 @@ def get_cart_item(
     )
     create_order_button = InlineKeyboardButton(
         text="📦",
-        callback_data=callbacks.CreateOrder().pack(),
+        callback_data=callbacks.StartCreatingOrder().pack(),
     )
 
     builder.row(
@@ -64,6 +64,17 @@ def get_cart_item(
         remove_from_cart_button,
         create_order_button,
         width=3,
+    )
+
+    return builder.as_markup()
+
+
+def confirm_creating_order() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    builder.button(
+        text="✅",
+        callback_data=callbacks.CreateOrder(),
     )
 
     return builder.as_markup()
