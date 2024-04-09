@@ -15,6 +15,7 @@ from dishka.integrations.aiogram import setup_dishka
 
 from marketplace.handlers.catalog import catalog_router
 from marketplace.handlers.cart import cart_router
+from marketplace.handlers.faq import faq_router
 from marketplace.database.sqlalchemy.mappers import (
     CategoryMapper,
     SubcategoryMapper,

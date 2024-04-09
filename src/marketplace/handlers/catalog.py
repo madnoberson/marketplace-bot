@@ -152,6 +152,10 @@ async def get_product(
         current_number=callback_data.product_number,
     )
 
+    if product.photo_url:
+        await callback.message.answer_photo(
+            photo=product.photo_url,
+        )
     await callback.message.answer(
         text=text,
         reply_markup=reply_markup,

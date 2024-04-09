@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True, slots=True)
@@ -8,3 +9,4 @@ class Product:
     description: str
     quantity: int
     price: int
+    photo_url: Optional[str]

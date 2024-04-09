@@ -73,6 +73,7 @@ def upgrade() -> None:
         sa.Column("description", sa.String(), nullable=False),
         sa.Column("quantity", sa.Integer(), nullable=False),
         sa.Column("price", sa.Integer(), nullable=False),
+        sa.Column("poster_url", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["subcategory_id"],
@@ -82,15 +83,23 @@ def upgrade() -> None:
     )
     op.execute(
         """
-        INSERT INTO products (id, subcategory_id, name, description, quantity, price) VALUES
-            (1, 1, 'Big hat', 'Nice hat', 10, 10),
-            (2, 2, 'Godzilla toy', 'He is terrifying', 5, 100),
-            (3, 3, 'Wide shovel', 'It is so wide', 200, 200),
-            (4, 4, 'Most soapest soap', 'So soapy', 1000, 1),
-            (5, 5, 'Thinkpad T470', 'Great laptop', 3, 2000),
-            (6, 6, 'DDD', 'Dive into DDD', 19, 300),
-            (7, 7, 'Big wheel', 'Big enough for tractors', 888, 800),
-            (8, 8, 'Colorful puzzles', 'Red, yellow, blue and more...', 444, 40)
+        INSERT INTO products (
+            id,
+            subcategory_id,
+            name,
+            description,
+            quantity,
+            price,
+            poster_url
+        ) VALUES
+            (1, 1, 'Big hat', 'Nice hat', 10, 10, 'https://das-my-bucket.b-cdn.net/big-hat.jpeg'),
+            (2, 2, 'Godzilla toy', 'He is terrifying', 5, 100, 'https://das-my-bucket.b-cdn.net/godizlla_toy.jpg'),
+            (3, 3, 'Wide shovel', 'It is so wide', 200, 200, 'https://das-my-bucket.b-cdn.net/wide_shovel.jpg'),
+            (4, 4, 'Most soapest soap', 'So soapy', 1000, 1, 'https://das-my-bucket.b-cdn.net/soap.jpg'),
+            (5, 5, 'Thinkpad T470', 'Great laptop', 3, 2000, 'https://das-my-bucket.b-cdn.net/thinkpad.jpeg'),
+            (6, 6, 'DDD', 'Dive into DDD', 19, 300, 'https://das-my-bucket.b-cdn.net/ddd.jpg'),
+            (7, 7, 'Big wheel', 'Big enough for tractors', 888, 800, 'https://das-my-bucket.b-cdn.net/wheel.jpeg'),
+            (8, 8, 'Colorful puzzles', 'Red, yellow, blue and more...', 444, 40, 'https://das-my-bucket.b-cdn.net/puzzles.jpg')
         """
     )
     op.create_table(

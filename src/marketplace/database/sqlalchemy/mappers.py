@@ -175,6 +175,7 @@ class ProductMapper:
             description=model.description,
             quantity=model.quantity,
             price=model.price,
+            photo_url=model.poster_url,
         )
 
 

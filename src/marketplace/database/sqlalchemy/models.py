@@ -55,6 +55,7 @@ class ProductModel(Model):
     description: Mapped[str]
     quantity: Mapped[int]
     price: Mapped[int]
+    poster_url: Mapped[str]
 
 
 class CartItemModel(Model):
