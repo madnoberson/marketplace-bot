@@ -1,7 +1,7 @@
 import asyncio
 import os
 import logging
-from typing import AsyncIterable
+from typing import AsyncIterable, Sequence
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums.parse_mode import ParseMode
@@ -16,6 +16,7 @@ from dishka.integrations.aiogram import setup_dishka
 from marketplace.handlers.catalog import catalog_router
 from marketplace.handlers.cart import cart_router
 from marketplace.handlers.faq import faq_router
+from marketplace.entities.faq import FAQ
 from marketplace.database.sqlalchemy.mappers import (
     CategoryMapper,
     SubcategoryMapper,
@@ -63,6 +64,30 @@ class DependenciesProvider(Provider):
     def catalog_config(self) -> CatalogConfig:
         return self._catalog_config
 
+    @provide(scope=Scope.APP)
+    def faq(self) -> Sequence[FAQ]:
+        return [
+            FAQ(
+                id=1,
+                question="How to create order?",
+                answer=(
+                    "Type /catalog -> choose category -> "
+                    "choose subcategory -> choose product and press 🛒 -> "
+                    "press 📦 -> enter your full name and address"
+                ),
+            ),
+            FAQ(
+                id=2,
+                question="2 + 2?",
+                answer="4",
+            ),
+            FAQ(
+                id=3,
+                question="How long should I wait for my order?",
+                answer="An eternity",
+            ),
+        ]
+
     category_mapper = provide(
         CategoryMapper,
         scope=Scope.REQUEST,
@@ -93,7 +118,11 @@ async def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
     dispatcher = Dispatcher()
-    dispatcher.include_routers(catalog_router, cart_router)
+    dispatcher.include_routers(
+        catalog_router,
+        cart_router,
+        faq_router,
+    )
     bot = Bot(BOT_TOKEN, parse_mode=ParseMode.HTML)
 
     provider = DependenciesProvider(
